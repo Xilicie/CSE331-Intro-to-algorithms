@@ -3,7 +3,7 @@ def quick_sort(arr):
     if len(arr) <= 1:
         return arr
 
-    # Choose the last element as the pivot
+    # Choose the last element as the pivot 
     p = arr[-1]
 
     # Partition: elements less than or equal to pivot go to L, others to R
