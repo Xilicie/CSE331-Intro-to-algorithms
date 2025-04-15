@@ -1,8 +1,8 @@
 def binary_search(arr, val):
-    """Standard binary search to find insertion index."""
+    """Standard binary search to find insertion index in a list of values."""
     left, right = 0, len(arr)
     while left < right:
-        mid = left + (right - left) // 2
+        mid = (left + right) // 2
         if arr[mid] < val:
             left = mid + 1
         else:
@@ -14,48 +14,38 @@ def library_sort(arr):
         return []
 
     n = len(arr)
-    # Choose a gap size (ex, 2n for simplicity)
+    # Add extra space for gaps — typically 2n size
     size_with_gaps = 2 * n
     sorted_arr = [None] * size_with_gaps
+    actual_positions = []
 
     # Insert first element in the middle
     mid = size_with_gaps // 2
     sorted_arr[mid] = arr[0]
-    count = 1
+    actual_positions.append(mid)
 
     for x in arr[1:]:
-        # Create a compact array of current elements (excluding gaps)
-        current = [item for item in sorted_arr if item is not None]
-        
-        # Perform binary search on current array
-        idx = binary_search(current, x)
+        # Build compact array of current values (only filled positions)
+        current_vals = [sorted_arr[pos] for pos in actual_positions]
+        # Binary search on current sorted values
+        idx = binary_search(current_vals, x)
 
-        # Map to real index in sorted_arr (with gaps)
-        real_idx = 0
-        nones_seen = 0
-        for i in range(len(sorted_arr)):
-            if sorted_arr[i] is not None:
-                if nones_seen == idx:
-                    real_idx = i
-                    break
-                nones_seen += 1
+        # Try to find an empty slot near the ideal location
+        if idx == len(actual_positions):
+            ideal_pos = actual_positions[-1] + 1
+            while ideal_pos < len(sorted_arr) and sorted_arr[ideal_pos] is not None:
+                ideal_pos += 1
         else:
-            real_idx = len(sorted_arr) - 1
+            ideal_pos = actual_positions[idx]
+            while ideal_pos >= 0 and sorted_arr[ideal_pos] is not None:
+                ideal_pos -= 1
 
-        # Find nearest empty slot to insert
-        insert_idx = real_idx
-        while insert_idx < len(sorted_arr) and sorted_arr[insert_idx] is not None:
-            insert_idx += 1
-        if insert_idx == len(sorted_arr):  # Try backwards if no forward space
-            insert_idx = real_idx
-            while insert_idx >= 0 and sorted_arr[insert_idx] is not None:
-                insert_idx -= 1
-            if insert_idx < 0:
-                raise Exception("No space to insert")
+        # Fallback in case both directions fail (should not happen for 2n size)
+        if ideal_pos < 0 or ideal_pos >= len(sorted_arr):
+            raise Exception("No space to insert value.")
 
-        sorted_arr[insert_idx] = x
-        count += 1
+        # Insert value
+        sorted_arr[ideal_pos] = x
+        actual_positions.insert(idx, ideal_pos)
 
-    # Filter out None and return sorted array
-    return [x for x in sorted_arr if x is not None]
-
+    return [sorted_arr[i] for i in actual_positions]
